@@ -33,12 +33,12 @@ int main()
     //set dest addr
     sockaddr_in destAddr;
     destAddr.sin_family = AF_INET;
-    destAddr.sin_port = htons(8080);
-    destAddr.sin_addr.s_addr = INADDR_ANY;
-    //inet_aton("127.0.0.1", (in_addr *)&destAddr.sin_addr.s_addr); 
+    destAddr.sin_port = 8080;
+    //destAddr.sin_addr.s_addr = INADDR_ANY;
+    inet_aton("127.0.0.1", (in_addr *)&destAddr.sin_addr.s_addr); 
 
     //make a  socket file descriptor
-    int32_t socfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+    int32_t socfd = socket(AF_INET, SOCK_DGRAM, 0);
     if(socfd == -1)
     {
         perror("Socket create failed \n");
