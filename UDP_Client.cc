@@ -1,4 +1,5 @@
 #include <netinet/ip.h>
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <iostream>
 //#include "config.hpp"
@@ -8,6 +9,7 @@ using namespace std;
 
 int main()
 {
+    char *DEST_IP;
     //allocate memory for single packet 
     unsigned char* pkt = (unsigned char*) calloc( 1, sizeof(struct ip*) +  MAX_FILE_SIZE);
     
@@ -22,28 +24,32 @@ int main()
     
     unsigned char* data = pkt + sizeof(struct  ip*);
     
-    //unsigned char* data = (unsigned char *)sizeof(MAX_FILE_SIZE );
-    
-    //put bytes into packet
+    // put bytes into packet
     for (int i = 0; i < MAX_FILE_SIZE; i++)
     {
-        data[i] = i%256;
+        data[i] = i * 1;
     }
-
-    //data[0] = sizeof(1);
-
+    
+    //set dest addr
     sockaddr_in destAddr;
     destAddr.sin_family = AF_INET;
-    
+    destAddr.sin_port = htons(8080);
+    destAddr.sin_addr.s_addr = INADDR_ANY;
+    //inet_aton("127.0.0.1", (in_addr *)&destAddr.sin_addr.s_addr); 
 
     //make a  socket file descriptor
-    int32_t socfd = socket(AF_INET, SOCK_RAW, 0);
-    if(socfd < 0)
+    int32_t socfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+    if(socfd == -1)
     {
+        perror("Socket create failed \n");
         exit(EXIT_FAILURE);
     }
     
-    sendto(socfd, data, (size_t)(sizeof(struct ip)+pkt), 0, (struct sockaddr * )&destAddr, sizeof(destAddr));
-    
-    
+
+    int n, len;
+    char buffer[1024];
+    sendto(socfd, data, (size_t)(sizeof(struct ip)+pkt), MSG_CONFIRM, (struct sockaddr * )&destAddr, sizeof(destAddr));
+    printf("Client saying Hello.... \n");
+
+    n = recvfrom(socfd,(char *) buffer, 1024, MSG_WAITALL,(struct sockaddr * )&destAddr,(socklen_t *) &len);
 }
