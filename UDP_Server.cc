@@ -7,43 +7,57 @@
 
 using namespace std;
 
-int main()
+#define BUFFERLEN 512
+#define PORT 8888
+
+int main(void)
 {
-    //Create socket
-    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockaddr_in serveraddr,cliaddr;
+    int sendlen = sizeof(cliaddr), recv_len;
+    char buffer[BUFFERLEN];
+
+    //Create UDP socket
+    int sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sockfd == -1){
-        perror(" Socket creation failed \n");
+        perror(" Socket creation failed \recv_len");
         exit(EXIT_FAILURE);
     }
 
     //set server address
-    sockaddr_in serveraddr;
+    //memset(&serveraddr,0, sizeof(serveraddr)); // zero out structure
     serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = INADDR_ANY;
-    //inet_aton("127.0.0.1", (in_addr *)&serveraddr.sin_addr.s_addr);
-    serveraddr.sin_port = 8080;
+    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serveraddr.sin_port = htons(PORT);
 
     //bind socket with server address
-
-    if(bind(sockfd,(struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0)
+    if(bind(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) == -1)
     {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("Server Running \n");
 
-    int len, n;
-    char buffer[1024];
-    sockaddr cliaddr;
-    len = sizeof(cliaddr);
+    while(1)
+    {
+        //keep listening for data
+        printf("Server Running \n");
 
-    n = recvfrom(sockfd, (char *)buffer, 1024, MSG_WAITALL, (struct sockaddr *)&serveraddr, (socklen_t *)&len);
+        if((recv_len = recvfrom(sockfd, buffer, BUFFERLEN, 0, (struct sockaddr *)&serveraddr, (socklen_t *)&sendlen)) == -1)
+        {
+            perror(" recv()n failed \n");
+            exit(EXIT_FAILURE);
+        }
 
-    buffer[n] = '\0';
-    printf("Client : %s \n", buffer);
+        printf("Received pkt from %s:%d\n", inet_ntoa(serveraddr.sin_addr), ntohs(serveraddr.sin_port));
+        printf("Client : %s \n", buffer);
 
-    string mesg = "Hello from Server \n";
-    sendto(sockfd, (char *)mesg.c_str(), strlen(mesg.c_str()), MSG_CONFIRM, (sockaddr *) &cliaddr, len);
+        //string mesg = "Hello from Server\n";
+       
+        if( sendto(sockfd, buffer, recv_len, 0, (sockaddr *) &serveraddr, sendlen) == -1)
+        {
+            perror(" Sendto failed \n");
+            exit(EXIT_FAILURE);
+        }
+    }
 
     close(sockfd);
     return 0;
