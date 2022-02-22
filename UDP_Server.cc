@@ -7,7 +7,7 @@
 
 using namespace std;
 
-#define BUFFERLEN 512
+#define BUFFERLEN 1024
 #define PORT 8888
 
 int main(void)
@@ -26,7 +26,7 @@ int main(void)
     //set server address
     //memset(&serveraddr,0, sizeof(serveraddr)); // zero out structure
     serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serveraddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     serveraddr.sin_port = htons(PORT);
 
     //bind socket with server address
@@ -41,7 +41,7 @@ int main(void)
         //keep listening for data
         printf("Server Running \n");
 
-        if((recv_len = recvfrom(sockfd, buffer, BUFFERLEN, 0, (struct sockaddr *)&serveraddr, (socklen_t *)&sendlen)) == -1)
+        if((recv_len = recvfrom(sockfd, buffer, BUFFERLEN, 0, (struct sockaddr *)&cliaddr, (socklen_t *)&sendlen)) == -1)
         {
             perror(" recv()n failed \n");
             exit(EXIT_FAILURE);
@@ -52,7 +52,7 @@ int main(void)
 
         //string mesg = "Hello from Server\n";
        
-        if( sendto(sockfd, buffer, recv_len, 0, (sockaddr *) &serveraddr, sendlen) == -1)
+        if( sendto(sockfd, buffer, recv_len, 0 , (sockaddr *) &cliaddr, sendlen) == -1)
         {
             perror(" Sendto failed \n");
             exit(EXIT_FAILURE);

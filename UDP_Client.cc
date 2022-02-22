@@ -9,7 +9,7 @@
 #include <netinet/ip.h>
 
 #define SERVER "127.0.0.1"
-#define BUFLEN 512	//Max length of buffer
+#define BUFLEN 1024	//Max length of buffer
 #define PORT 8888	//The port on which to send data
 
 #define MAX_FILE_SIZE 65535
@@ -62,8 +62,8 @@ int main(void)
 	{
 		printf("Enter message : ");
 		cin.getline(message, sizeof message);
-		//send the message
-		if (sendto(socfd, message, strlen(message) , 0 , (struct sockaddr *) &destAddr, slen)==-1)
+		
+		if (sendto(socfd, message, strlen(message) , 0 , (struct sockaddr *) &destAddr, slen)==-1)//send the message
 		{
 			perror(" Sendto() failed \n");
             exit(EXIT_FAILURE);
@@ -76,11 +76,10 @@ int main(void)
         //     exit(EXIT_FAILURE);
         // }
 
-
 		//receive a reply and print it
 		//clear the buffer by filling null, it might have previously received data
 		memset(buf,'\0', BUFLEN);
-		//try to receive some data, this is a blocking call
+
 		if (recvfrom(socfd, buf, BUFLEN, 0, (struct sockaddr *) &destAddr, ( socklen_t *)&slen) == -1)
 		{
 			perror(" recvfrom() failed \n");
