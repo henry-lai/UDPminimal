@@ -58,6 +58,8 @@ struct BatsHeader {
 #define COEF_HEADER_LENGTH BATCH_SIZE  // TODO: change this to BATCH_SIZE * OUTER CODE FIELD SIZE
 #define ENCODED_PKT_SIZE  (MTU-sizeof(struct BatsHeader)-COEF_HEADER_LENGTH)
 
+#define FLEXIBLE_PKT_SIZE true
+
 #define IPPROTO_BATS 225
 #define MAX_PACKET_SIZE 66000  // need to be greater than 65507 for netfilter headers
 #define MAX_FILE_SIZE 65536
