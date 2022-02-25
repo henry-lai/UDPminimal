@@ -2,13 +2,13 @@
 #define CONFIG_HPP
 
 #include <netinet/ip.h>
-//#include <memory>
+#include <memory>
 #include <mutex>
-//#include <sys/types.h>
-//#include <unordered_map>
+#include <sys/types.h>
+#include <unordered_map>
 
-
-#include "batscodenhop.hpp"
+//#include "bats-lib/src/batscodenhop.hpp"
+//#include "batscodenhop.hpp"
 
 
 /* header structure (bytes)

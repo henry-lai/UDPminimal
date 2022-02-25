@@ -30,7 +30,7 @@ struct BatsHeader {
 
 #define IPPROTO_BATS 225
 #define MAX_PACKET_SIZE 66000  // need to be greater than 65507 for netfilter headers
-#define MAX_FILE_SIZE 65536
+#define MAX_FILE_SIZE 65540
 #define MAX_FILE_SEGMENTS MAX_FILE_SIZE
 
 /**

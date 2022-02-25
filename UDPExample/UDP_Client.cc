@@ -29,24 +29,6 @@ int main(void)
         exit(EXIT_FAILURE);
 	}
 
-    //allocate memory for single packet 
-    unsigned char* pkt = (unsigned char*) calloc( 1, sizeof(struct ip*) +  MAX_FILE_SIZE);
-
-    // allocate memory for header
-    // struct ip *header = (struct ip *)pkt;
-    // header->ip_v = 4;
-    // header->ip_hl = 4;
-    // header->ip_id = htons(0);
-    // header->ip_off = htons(0);
-    // header->ip_ttl = 8;
-    // header->ip_p = 8;
-
-    unsigned char* data = pkt + sizeof(struct  ip*);
-    for (int i = 0; i < MAX_FILE_SIZE; i++) // put bytes into packet
-    {
-        data[i] = i * 1;
-    }
-
     memset((char *) &destAddr, 0, sizeof(destAddr));
 	destAddr.sin_family = AF_INET;
 	destAddr.sin_port = htons(PORT);
@@ -69,13 +51,6 @@ int main(void)
             exit(EXIT_FAILURE);
 		}
 		
-        //bats pkt send()
-        // if( sendto(socfd, data, (size_t)(sizeof(struct ip)+pkt), 0, (struct sockaddr * )&destAddr, sizeof(destAddr)) == -1)
-        // {
-        //     perror(" Sendto() failed \n");
-        //     exit(EXIT_FAILURE);
-        // }
-
 		//receive a reply and print it
 		//clear the buffer by filling null, it might have previously received data
 		memset(buf,'\0', BUFLEN);
