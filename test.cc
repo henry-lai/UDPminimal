@@ -32,7 +32,6 @@ struct EncodeFile {
 //puts values into encode file. adds bats header, send final pkt to socket
 void encode(unsigned char* pkt, sockaddr_in dest_addr, int32_t sockfd)
 {   
-    printf("1\n");
     uint16_t fileId= rand() % (MAX_FILE_ID >> 1);
     unsigned char *buf = new unsigned char[MAX_FILE_SIZE];
     //uint32_t len;
@@ -43,12 +42,13 @@ void encode(unsigned char* pkt, sockaddr_in dest_addr, int32_t sockfd)
     uint64_t encoderId = ((uint64_t)ntohl(iph->ip_src.s_addr) << 32) + ntohl(iph->ip_dst.s_addr);    // Set EncoderId as combination of source addr and dest addr
     int batchNum, numOfPackets, opt_pkt_size;
     //packetSizeOptimizer(encodefile->len , OVERHEAD, batchNum, numOfPackets, opt_pkt_size);
-    numOfPackets = 10;
+    
+    numOfPackets = 10; 
     opt_pkt_size = 10;
     
     unsigned char *pkts[BATCH_SIZE];
     unsigned char *batches[BATCH_SIZE];
-    unsigned char *rawFile[numOfPackets];
+    //unsigned char *rawFile[numOfPackets];
     
     // for (int32_t i = 0; i < numOfPackets; i++)
     // {
@@ -57,7 +57,6 @@ void encode(unsigned char* pkt, sockaddr_in dest_addr, int32_t sockfd)
     
     for (int i = 0; i < BATCH_SIZE; i++)
     {   
-        
         pkts[i] = (unsigned char*) calloc( 1, sizeof(struct BatsHeader) + (COEF_HEADER_LENGTH + PAD32(opt_pkt_size)));
         batches[i] = pkts[i] + sizeof(struct BatsHeader);
     }
@@ -76,13 +75,12 @@ void encode(unsigned char* pkt, sockaddr_in dest_addr, int32_t sockfd)
             header->fileId = htons(fileId);
             header->numOfPackets = htons(numOfPackets);
 
-            // Requires bats lib 
+            // Requires bats lib == a lot of dependencies
             //header->param.batch_id = htons(param.batch_id); 
             //header->param.degree = htonl(param.degree);
-
             
-            printf("[%lX] Encode file %u, %d pkts,  - %d encoded pkt size, to %s\n",
-                 encoderId, fileId, numOfPackets,  opt_pkt_size, inet_ntoa(dest_addr.sin_addr));
+            // printf("[%lX] Encode file %u, %d pkts,  - %d encoded pkt size, to %s\n",
+            //      encoderId, fileId, numOfPackets,  opt_pkt_size, inet_ntoa(dest_addr.sin_addr));
 
             if ( sendto ( sockfd, pkts[j], sizeof(struct BatsHeader) + COEF_HEADER_LENGTH + opt_pkt_size, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1)
             {
@@ -98,18 +96,13 @@ void encode(unsigned char* pkt, sockaddr_in dest_addr, int32_t sockfd)
     }
 }
 
-// void cb(unsigned char* pkt, int32_t len)
-// {
-//     struct ip *iph = (struct ip *)pkt;
-//     uint64_t encoderId = ((uint64_t)ntohl(iph->ip_src.s_addr) << 32) + ntohl(iph->ip_dst.s_addr);    // Set EncoderId as combination of source addr and dest addr
-//     //encode(encoderId);
-// }
-
 int main(void)
 {
-	sockaddr_in dest_addr;
-    int sendlen = sizeof(dest_addr), recv_len;
-    char buffer[BUFFERLEN];
+    //dest. address
+    sockaddr_in destAddr;
+    int sendlen = sizeof(destAddr); 
+    int recv_len;
+    //char buffer[BUFFERLEN];
     unsigned char recv_buf[65535];
 
     //Create UDP socket
@@ -120,36 +113,33 @@ int main(void)
     }
 
     //set this node address
-    sockaddr_in destAddr;
+    memset((char *) &destAddr, 0, sizeof(destAddr));
     destAddr.sin_family = AF_INET;
-    destAddr.sin_addr.s_addr = inet_addr(ADDR);
     destAddr.sin_port = htons(PORT);
+    if (inet_aton(ADDR , &destAddr.sin_addr) == 0) 
+	{
+		fprintf(stderr, "inet_aton() failed\n"); exit(EXIT_FAILURE);
+	}
 
-    if(bind(sockfd, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1)
+    // if(bind(sockfd, (struct sockaddr *)&destAddr, sizeof(destAddr)) == -1)
+    // {
+    //     perror("Bind failed"); exit(EXIT_FAILURE);
+    // }
+
+    printf(" Running \n");
+    int count =0;
+    while( count < 10)
     {
-        perror("Bind failed"); exit(EXIT_FAILURE);
-    }
+        encode(recv_buf, destAddr, sockfd); //  encode()
 
-    while(1)//keep listening for data
-    {
-        printf("Encoder Running \n");
-        // if((recv_len = recvfrom(sockfd, recv_buf, BUFFERLEN, 0, (struct sockaddr *)&dest_addr, (socklen_t *)&sendlen)) == -1)
-        // {
-        //     perror(" recv()n failed: "); exit(EXIT_FAILURE);
-        // }
-        encode(recv_buf, dest_addr, sockfd); //  encode()
+        //read(sockfd, recv_buf,sizeof(recv_buf));
 
-        read(sockfd, recv_buf,sizeof(recv_buf));
-        
-        // printf("Enter message : ");
-        // char message [BUFFERLEN];
-		// cin.getline(message, sizeof message);
-		// if (sendto(sockfd, message, strlen(message) , 0 , (struct sockaddr *) &destAddr, sendlen)==-1)//send the message
-		// {
-		// 	perror(" Sendto() failed \n");
-        //     exit(EXIT_FAILURE);
-		// }
-
+        if((recv_len = recvfrom(sockfd, recv_buf, sizeof(recv_buf), 0, (struct sockaddr *)&destAddr, (socklen_t *)&sendlen)) == -1)
+        {
+            perror(" recv()n failed: "); exit(EXIT_FAILURE);
+        }
+        puts( (const char *)recv_buf );
+        count++;
     }
     close(sockfd);
     return 0;
